@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>Туториал по рисованию в Java и тестирование в JUnit</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+	<h1>Туториал по рисованию в Java и тестирование в JUnit</h1>
+</header>	
+
+<article>
+	
+	<p>Добрый день, сегодня я вкратце расскажу вам, как же рисовать в Java. Сразу оговорюсь, что речь идет о рисовании графических примитивов в Desktop приложении, например на <span class="code">JFrame</span>. Разрабатывать я буду, в силу специфики нашей встречи, с помощью TDD, делая на этом основной акцент. </p>
+
+	<p>
+	Итак, я хочу чтобы у пользователя при запуске приложения появлялось <span class="code">JFrame</span> окно для отображения наших умопомрачительных художеств. Для этого создаем наследника класса <span class="code">JFrame</span> и, проявив оригинальность, называем его, <span class="code">PaintFrame</span>. Далее, создаем <em>TestCase</em> на этот класс (<span class="code">PaintFrameTest</span>). Неплохое начало, не так ли? Опишем требования к frame’у в созданном testCase’е.</p>
+
+	<p>Пусть созданный фрейм будет находиться на позиции (50, 50):</p>
+
+	<div class="code">
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> paintFrameAt50x50Position() <span class="keyword">throws</span> Exception {
+			<div class=methodbody>
+				PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+				Point actual = frame.getLocation();<br>
+				Point expected = PaintFrame.<span class="finalvar">DEFAULT_LOCATION_POINT</span>;<br>
+				assertEquals(<span class="string">"PaintFrame must be at position 
+						(50,50) after creation"</span>, actual, expected);<br>
+			</div>		
+		}</div>
+	</div>
+
+
+	<p>Запускаем тест – он валится. Прекрасно, сделаем его зеленым:</p>
+
+	<div class="code">
+		<div><span class=keyword>public</span> PaintFrame() {
+			<div class=methodbody>init();</div>
+		}</div>
+		
+		<br>
+		<div><span class=keyword>private void</span> init() {
+			<div class=methodbody>setLocation(<span class="finalvar">DEFAULT_LOCATION_POINT);</span></div>
+		}</div>
+	</div>
+
+	<p>Теперь мне хочется, чтобы:</p>
+
+	<ul>
+	<li>созданный <em>frame</em> имел размеры 400x400 и пользователь не мог бы их изменить.</li>
+	<li>У нашего окошка должен быть менеджер размещения <span class="code">BorderLayout</span></li>
+	<li>Frame должен содержать только один компонент и это должна быть панель типа <span class="code">JPanel</span>.</li>
+	<li>При закрытии <em>frame</em>’а пользователем, оный должен уничтожаться.</li>
+	</ul>
+
+	<p>Реализуем эту функциональность по аналогии с показанным примером. Приведу пример полученного testCase’а:</p>
+
+	<div class=code>
+		<div><span class=keyword>public class</span> PaintFrameTest {
+		
+			<div class=classbody>
+			
+				<div class=annotation>@Test</div>
+				<div><span class=keyword>public void</span> paintFrameAt50x50Position() <span class=keyword>throws</span> Exception {
+				
+					<div class=methodbody>
+						PaintFrame frame = <span class=keyword>new</span> PaintFrame();<br>
+						Point actual = frame.getLocation();<br>
+						Point expected = PaintFrame.<span class=finalvar>DEFAULT_LOCATION_POINT</span>;<br>
+						<span class=staticmethod>assertEquals</span>(<span class=string>"PaintFrame must be at position (50,50) after creation"</span>, actual, expected);
+					</div>
+					
+				}</div>
+			
+
+				<div class=annotation>@Test</div>
+				<div><span class=keyword>public void</span> paintFrameHas400x400Size() <span class=keyword>throws</span> Exception {
+					<div class=methodbody>
+						PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+						Dimension actual = frame.getSize();<br>
+						Dimension expected = PaintFrame.<span class="finalvar">DEFAULT_SIZE</span>;<br>
+						<span class="staticmethod">assertEquals</span>(<span class="string">"PaintFrame must have size 400x400 after creation"</span>, expected, actual);
+					</div>
+				}</div>
+
+				<div class=annotation>@Test</div>
+				<div><span class="keyword">public void</span> paintFrameNotResizable() <span class="keyword">throws</span> Exception {
+					<div class=methodbody>
+						PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+						<span class="staticmethod">assertFalse</span>(<span class="string">"PaintFrame must be non-resizable."</span>, frame.isResizable());
+					</div>
+				}</div>
+
+				<div class=annotation>@Test</div>
+				<div><span class="keyword">public void</span> paintFrameHasBorderLayoutManager() <span class="keyword">throws</span> Exception {
+					<div class=methodbody>
+						PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+						<span class="staticmethod">assertTrue</span>(<span class="string">"LayoutManager of PaintFrame must be a BorderLayout"</span>,
+						<div class=stringnewline>frame.getContentPane().getLayout() <span class="keyword">instanceof</span> BorderLayout);</div>
+					</div>
+			}</div>
+
+				<div class=annotation>@Test</div>
+				<div><span class="keyword">public void</span> paintFrameContainsOnlyOnePanel() <span class="keyword">throws</span> Exception {
+					<div class="methodbody">
+						PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+						Component [] components = frame.getContentPane().getComponents();<br>
+						<span class="staticmethod">assertEquals</span>(<span class="string">"PaintFrame must contains only one component"</span>, 1, components.length);<br>
+						<span class="staticmethod">assertTrue</span>(<span class="string">"PaintFrame contains only one JPanel"</span>, components[0] <span class="keyword">instanceof</span> JPanel);
+					</div>
+				}</div>
+
+				<div class=annotation>@Test</div>
+				<div><span class="keyword">public void</span> paintFrameMustExitedOnClose() <span class="keyword">throws</span> Exception {
+					<div class="methodbody">
+						PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+						<span class="staticmethod">assertEquals</span>(<span class="string">"PaintFrame must exited on close operation."</span>, JFrame.<span class="finalvar">EXIT_ON_CLOSE</span>,
+						<div class=stringnewline>frame.getDefaultCloseOperation());</div>
+					</div>
+				}</div>
+				
+			</div>
+		}</div>
+	</div>
+
+	<p>Что-то вроде того должно получиться и у вас.</p>
+
+	<p>Основной каркас готов, теперь капельку теории. Отрисовка компонента в Swing осуществляется в методе <span class="code">paintComponent(Graphics graphics)</span>.  Класс <span class="code">Graphics</span> предоставляет необходимые нам методы по рисованию примитивов наподобие точки, прямой, круга и других. Таким образом, как вы уже догадались, мы будем переопределять метод span.code{paintComponent у единственной панели, которую мы добавили на <em>frame</em>
+	</p>
+
+
+	<p>Очевидно нам понадобиться свой собственный тип панели. Сделаем его и назовем как-нибудь вроде <span class="code">Linen</span>.  Соответственно, сразу создаем соответствующий <em>testCase</em>. Не забудем, что требования к фрейму изменились, отобразим это: </p>
+
+	<div class=code>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> paintFrameContainsOnlyOneLinen() <span class="keyword">throws</span> Exception {
+			
+			<div class="methodbody">
+				PaintFrame frame = <span class="keyword">new</span> PaintFrame();<br>
+				Component [] components = frame.getContentPane().getComponents();<br>
+				<span class="staticmethod">assertEquals</span>(<span class="string">"PaintFrame must contains only one component"</span>, 1, components.length);<br>
+				<span class="staticmethod">assertTrue</span>(<span class="string">"PaintFrame contains only one JPanel"</span>, components[0] <span class="keyword">instanceof</span> Linen);
+			</div>
+		}</div>			
+	</div>
+
+
+	<p>Тест стал красным, не забудьте поправить реализацию в соответствии с описанными требованиями.</p>
+
+	<p>Сосредоточимся на самом рисовании. Допустим я хочу чтоб при отрисовке панель рисовала на себе прямоугольник (10, 10, 92, 17). Правда один прямоугольник это немного уныло, поэтому сделаем еще линию из точки (32, 17) в точку (250, 378). Давайте более конкретно сформулируем требования, чтобы было удобно.</p>
+
+	<ul>
+		<li>Полотно сконфигурировано для рисования в режиме сглаживания</li>
+		<li>На полотне нарисован зеленый прямоугольник с координатой левого верхнего угла (10,10) и размерами (92,17).</li>
+		<li>Поверх прямоугольника нарисована линия с началом в точке (32,17) и концом в точке (250, 378).</li>
+	</ul>
+
+
+	<p>У меня получились такие тесты на все это хозяйство:</p>
+
+
+	<div class=code>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> configureGraphicsSetAntializingAndRenderQuality() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = spy(<span class="keyword">new</span> Linen());&nbsp; <span class="comment">//  Требуется библиотека org.mockito.Mockito.*</span><br>
+				Graphics2D gr = mock(Graphics2D.<span class="keyword">class</span>); <span class="comment">//  Требуется библиотека org.mockito.Mockito.*</span><br>
+				linen.configureGraphics(gr);<br>
+				InOrder order = inOrder(gr); <span class="comment">//  Требуется библиотека org.mockito.Mockito.*</span><br>
+				order.verify(gr).setRenderingHint(RenderingHints.<span class="finalvar">KEY_ANTIALIASING</span>, RenderingHints.<span class="finalvar">VALUE_ANTIALIAS_ON</span>);<br>
+				order.verify(gr).setRenderingHint(RenderingHints.<span class="finalvar">KEY_RENDERING</span>, RenderingHints.<span class="finalvar">VALUE_RENDER_QUALITY</span>);
+			</div>
+		}</div>							
+				
+		<br>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> drawObjectsDrawsGreenRectangleAndBlueLine() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = spy(<span class="keyword">new</span> Linen());<br>
+				Graphics2D gr = mock(Graphics2D.<span class="keyword">class</span>);<br>
+				linen.drawObjects(gr);<br>
+				InOrder order = inOrder(gr);<br>
+				order.verify(gr).setColor(<span class="keyword">new</span> Color(0, 255, 0));<br>
+				order.verify(gr).fillRect(10, 10, 92, 17);<br>
+				order.verify(gr).setColor(<span class="keyword">new</span> Color(0, 0, 255));<br>
+				order.verify(gr).drawLine(32, 17, 250, 320);
+			</div>
+		
+		}</div>
+	</div>
+		
+	<p>Вы только посмотрите какая херня получилась. Тесты практически в точности повторяют будущий исходный код. Мне показалось это не совсем правильным, но тем не менее я не знаю как тестировать подобную отрисовку графики по-другому. В основном такое получается потому, что рисование элементов на доске должно происходить в соответствии с их положением по глубине (ось Z) относительно друг друга. Тем самым последовательность вызовов методов играет большую роль и влияет на выполнение функциональных требований. </p>
+
+	<p>Несмотря на то, что у нас получился довольно странный тест (точнее два теста), это позволило нам фиксировать функциональность отрисовки панели, что, в общем то, не плохо. </p>
+
+	<p>Написав реализацию методов и сделав их зелеными предлагаю подумать о том, чтоб вынести логику, определяющую вид полотна после отрисовки из компонента, обеспечив ее легкую замену в процессе работы продукта. Заодно мы минимизируем зависимость порядка отрисовки элементов в одном методе.</p>
+
+	<p>Чтобы осуществить мои планы, я предлагаю использовать концепцию слоев. Слоем назовем совокупность элементов, последовательность отрисовки которых относительно друг друга не имеет значения. Каждый слой будет иметь вес. Слои будут отрисовываться в последовательности от самых тяжелых до самых легких.</p>
+
+	<p>Создадим абстрактный класс <span class="code">AbstractLayer</span> и добавим в его состояние информацию о весе.</p>
+
+	<div class=code>
+		<div><span class="keyword">public abstract class</span> AbstractLayer <span class="keyword">implements</span> Comparable&lt;AbstractLayer&gt; {
+			<div class="classbody">
+				<span class="keyword">private int</span> weight;<br>
+				
+				<br>
+				<div>
+					<span class="keyword">public int</span> compareTo(AbstractLayer o) {
+					<div class="methodbody">
+						<span class="keyword">return</span> weight - o.getWeight();	
+					</div>
+					}	
+				</div>
+				
+				<br>
+				<div><span class="keyword">protected abstract void</span> draw();</div>
+
+				<div class=comment>/**<br>
+				* @param weight<br>
+				* the weight to set<br>
+				*/</div>
+				<div><span class="keyword">public void</span> setWeight(<span class="keyword">int</span> weight) {
+					<div class="methodbody">
+						<span class="keyword">this</span>.weight = weight;<br>
+					</div>		
+				}</div>	
+							
+				<div class=comment>/**<br>
+				* @return the weight<br>
+				*/</div>
+				<div><span class="keyword">public int</span> getWeight() {
+					<div class="methodbody">
+						<span class="keyword">return</span> weight;	
+					</div>	
+				}</div>
+			</div>
+		}</div>	
+	</div>
+
+	<p>Вроде все замечательно, теперь добавим в наш класс <span class="code">Linen</span> поддержку слоев. Во-первых дополним состояние объекта <span class="code">Linen</span> параметром <q lang="ru">список слоев</q>.</p>
+
+	<div class=code>
+		<div><span class="keyword">private</span> SortedSet&lt;AbstractLayer&gt; layers = <span class="keyword">new</span> TreeSet&lt;AbstractLayer&gt;();</div>
+		
+		<div class=comment>/**<br>
+			* @param layers the layers to set<br>
+			*/
+		</div>
+		<div><span class="keyword">void</span> setLayers(SortedSet&lt;AbstractLayer&gt; layers) {
+			<div class="methodbody">
+				<span class="keyword">this</span>.layers = layers;	
+			</div>
+		}</div>
+
+
+		<div class=comment>/** <br>
+			* @return the layers<br>
+			*/
+		</div>
+		<div>SortedSet&lt;AbstractLayer&gt; getLayers() {
+			<div class="methodbody">
+				<span class="keyword">return</span> layers;	
+			</div>
+		}</div>
+	</div>
+
+	<p>Я поступил как параноик - само множество слоев будет недоступно для стороннего пользователя. Добавление и удаление слоев будет осуществляться методами, соответствующими следующей спецификации:</p>
+
+	<div class=code>
+		
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> addLayerAddsGivenParamIntoInnerLayersField() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = <span class="keyword">new</span> Linen();<br>
+				AbstractLayer layer = <span class="keyword">new</span> StubLayer(1);<br>
+				linen.addLayer(layer);<br>
+				<span class="staticmethod">assertTrue</span>(<span class="string">"addLayer method must adds layer to inner field of linen."</span>,
+				<div class=stringnewline>linen.getLayers().contains(layer));</div>
+			</div>
+		}</div>				
+		
+		<br>	
+		<div class=annotation>@Test</div>	
+		<div><span class="keyword">public void</span> addLayerThatAlreadyExistIgnored() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = <span class="keyword">new</span> Linen();<br>
+				AbstractLayer layer1 = <span class="keyword">new</span> StubLayer(1);<br>
+				AbstractLayer layer2 = <span class="keyword">new</span>  StubLayer(2);<br>
+				linen.addLayer(layer1);<br>
+				linen.addLayer(layer2);<br>
+				<span class="keyword">int</span>  oldSize = linen.getLayers().size();<br>
+				linen.addLayer(layer1);<br>
+				<span class="staticmethod">assertEquals</span>(<span class="string">"addLayer method must ignored when layer already added."</span>,
+				<div class=stringnewline>oldSize, linen.getLayers().size());</div>
+			</div>
+		}</div>
+		
+		<br>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> removeLayerRemovesGivenParamFromInnerLayersField() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = <span class="keyword">new</span> Linen();<br>
+				AbstractLayer layer = <span class="keyword">new</span> StubLayer(1);<br>
+				linen.getLayers().add(layer);<br>
+				linen.removeLayer(layer);<br>
+				<span class="staticmethod">assertFalse</span>(<span class="string">"removeLayer method must removes layer from inner "</span>&nbsp;+ 
+				<div class=stringnewline><span class="string">"field of linen."</span>, linen.getLayers().contains(layer));</div>
+			</div>
+		}</div>
+
+		<br>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> removingNonExistLayerIgnored() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = <span class="keyword">new</span> Linen();<br>
+				AbstractLayer layer = <span class="keyword">new</span> StubLayer(1);<br>
+				AbstractLayer layer2 = <span class="keyword">new</span>  StubLayer(2);<br>
+				linen.getLayers().add(layer);<br>
+				<span class="keyword">int</span> oldSize = linen.getLayers().size();<br>
+				linen.removeLayer(layer2);<br>
+				<span class="staticmethod">assertEquals</span>(<span class="string">"removeLayer method must ignored if given layer "</span>&nbsp;+
+				<div class=stringnewline><span class="string">"not exist in inner set."</span>, oldSize, linen.getLayers().size());</div>
+			</div>		
+		}</div>
+
+		<br>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> innerSetSortedByLayerWeight() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = <span class="keyword">new</span> Linen();<br>
+				AbstractLayer layer1 = <span class="keyword">new</span> StubLayer(1);<br>
+				AbstractLayer layer2 = <span class="keyword">new</span> StubLayer(2);<br>
+				AbstractLayer layer3 = <span class="keyword">new</span> StubLayer(3);<br>
+				linen.addLayer(layer2);<br>
+				linen.addLayer(layer3);<br>
+				linen.addLayer(layer1);<br>
+				<span class="keyword">int</span>  old = 4;<br>
+				<div><span class="keyword">for</span> (AbstractLayer layer : linen.getLayers()) {
+					<div class="forbody">
+						<div><span class="keyword">if</span> (old &lt; layer.getWeight()) {
+							<div class="ifbody">
+								fail(<span class="string">"inner set of layers must be sorted"</span>);	
+							</div>
+						}</div>
+						old = layer.getWeight();				
+					</div>
+				}</div>
+			</div>
+		}</div>					
+	</div>
+
+	<p>Изменим требования к методу <span class="code">drawObjects(Graphics2D gr)</span>. Теперь его работа будет заключаться в последовательном вызове методов отрисовки у всех своих внутренних слоев.</p>
+
+	<div class=code>
+		<div class=annotation>@Test</div>
+		<div><span class="keyword">public void</span> drawObjectsDrawsAllLayersSortedByWeight() <span class="keyword">throws</span> Exception {
+			<div class="methodbody">
+				Linen linen = <span class="keyword">new</span> Linen();<br>
+				Graphics2D gr = mock(Graphics2D.class);<br>
+				AbstractLayer layer1 = spy(<span class="keyword">new</span> StubLayer(1));<br>
+				AbstractLayer layer2 = spy(<span class="keyword">new</span> StubLayer(2));<br>
+				AbstractLayer layer3 = spy(<span class="keyword">new</span> StubLayer(3));<br>
+				linen.addLayer(layer2);<br>
+				linen.addLayer(layer3);<br>
+				linen.addLayer(layer1);<br>
+				linen.drawObjects(gr);<br>
+				InOrder inOrder = inOrder(layer1, layer2, layer3);<br>
+				inOrder.verify(layer3).draw(gr);<br>
+				inOrder.verify(layer2).draw(gr);<br>
+				inOrder.verify(layer1).draw(gr);
+			</div>		
+		}</div>
+	</div>
+
+	<p>Вот, собственно все и готово. Теперь можно использовать для рисования слои, абстрагируясь от положения элементов друг на другом. </p>
+
+	<p>Теперь можно побаловаться и сделать что-нибудь вроде перемещающегося квадрата по панельке по некоторой траектории. 
+	Чтобы не утомлять вас длинными рассуждениями на тему того, как же это должно быть реализовано, оставлю решение за вами, вы вольны придумать такую реализацию, которая вам больше 
+	нравится. Я добавил на слои поддержку событий изменения состояния слоя и при изменении состояния обновлял компонент. Мой вариант реализации можно найти в исходных кодах XP Party. 
+	Исходный код можно найти на нашем <a href="http://code.google.com/p/samara-xp-party/source/checkout">SVN</a>.</p>
+</article>
+
+</body></html>
